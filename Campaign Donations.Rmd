@@ -1,0 +1,23 @@
+---
+title: "Campaign Donations"
+author: "Maddie Chai"
+date: "10/22/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(utils)
+library(dplyr)
+library(stringr)
+data <- read_delim("itcont.txt", delim = "|", col_names = FALSE) 
+```
+
+```{r}
+harvard <- data %>%
+  transmute(name = X8, employer = X12, state = X10, amount = X15) %>%
+  filter(str_detect(employer, pattern = "HARVARD")) %>%
+  count(employer)
+```
+
