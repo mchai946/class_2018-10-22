@@ -1,23 +1,41 @@
 ---
-title: "Campaign Donations"
+title: "FEC Campaign Donations"
 author: "Maddie Chai"
 date: "10/22/2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, download_indiv, echo = FALSE, cache = TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(utils)
 library(dplyr)
 library(stringr)
-data <- read_delim("itcont.txt", delim = "|", col_names = FALSE) 
+library(fs)
+
+download.file(url = "https://www.fec.gov/files/bulk-downloads/1990/indiv90.zip", destfile = "indiv90.zip")
+unzip("indiv90.zip")
+indiv <- read_delim("itcont.txt", delim = "|", col_names = FALSE, escape_double = FALSE) 
+
+download.file(url = "https://www.fec.gov/files/bulk-downloads/1990/cm90.zip", destfile = "cm90.zip")
+unzip("cm90.zip")
+cmaster <- read_delim("cm.txt", delim = "|", col_names = FALSE, escape_double = FALSE) 
+
+file_delete(c("cm90.zip", "cm.txt"))
+``` 
+*The number of observations is X.
+*The number of observations is `r nrow(indiv)`.
+
+```{r, echo = FALSE}
+
+cmaster_clean <- cmaster %>%
+  transmute(cmte_id = X1, cmte_name = X2, cmte_party = X11)
+
+all <- left_join(data, cmaster, by = "X1", suffix = c(".indiv", ".cmaster")) %>%
+  transmute(name = X8.indiv, employer = X12.indiv, state = X10.indiv, amount = X15.indiv, committee = X2.cmaster) %>%
+  filter(str_detect(employer, pattern = "HARVARD")) %>%
+  arrange(desc(amount))
 ```
 
-```{r}
-harvard <- data %>%
-  transmute(name = X8, employer = X12, state = X10, amount = X15) %>%
-  filter(str_detect(employer, pattern = "HARVARD")) %>%
-  count(employer)
-```
+
 
